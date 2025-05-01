@@ -31,7 +31,7 @@
             top: 0;
             right: 0;
             width: 280px;
-            max-width: 90vw;
+            max-width: 80vw; /* Reduced from 90vw for better mobile view */
             height: 100vh;
             background: white;
             box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
@@ -39,6 +39,7 @@
             transition: transform 0.3s ease-in-out;
             z-index: 1000;
             overflow-y: auto;
+            -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
         }
 
         .nav-menu.open {
@@ -74,6 +75,7 @@
             padding: 0.5rem;
             border-radius: 50%;
             transition: background-color 0.3s;
+            z-index: 10; /* Ensure it's above other elements */
         }
 
         .menu-button:hover {
@@ -127,11 +129,14 @@
             flex-direction: column;
             background-color: #f3f4f6;
             font-family: system-ui, -apple-system, sans-serif;
+            overflow-x: hidden; /* Prevent horizontal scrolling */
+            width: 100%;
         }
 
         main {
             flex-grow: 1;
             padding: 1rem;
+            width: 100%;
         }
 
         @media (min-width: 640px) {
@@ -150,6 +155,7 @@
             background-color: #1f2937;
             color: white;
             padding: 1.5rem 1rem;
+            width: 100%;
         }
 
         @media (min-width: 768px) {
@@ -293,9 +299,10 @@
         /* Monaco Editor Styles */
         #editor {
             width: 100%;
-            height: 300px;
+            height: 250px; /* Reduced initial height for mobile */
             border: 1px solid #ccc;
             border-radius: 4px;
+            overflow: hidden; /* Prevent overflow */
         }
 
         @media (min-width: 768px) {
@@ -310,9 +317,10 @@
 
         #preview {
             width: 100%;
-            height: 300px;
+            height: 250px; /* Reduced initial height for mobile */
             border: 1px solid #ccc;
             border-radius: 4px;
+            overflow: hidden; /* Prevent overflow */
         }
 
         @media (min-width: 768px) {
@@ -325,6 +333,7 @@
             display: flex;
             flex-wrap: wrap;
             gap: 0.5rem;
+            justify-content: space-between; /* Even spacing for mobile */
         }
 
         @media (min-width: 640px) {
@@ -336,7 +345,7 @@
 
         .action-button {
             flex: 1;
-            min-width: 90px;
+            min-width: 70px; /* Reduced from 90px for smaller screens */
             display: flex;
             justify-content: center;
             align-items: center;
@@ -350,6 +359,28 @@
             .action-button {
                 min-width: auto;
                 padding: 0.5rem 1rem;
+            }
+        }
+        
+        /* Fix for header on small devices */
+        @media (max-width: 480px) {
+            header h1 {
+                font-size: 1.5rem; /* Smaller font for very small screens */
+            }
+            
+            .menu-button {
+                right: 0.5rem;
+                top: 0.5rem;
+            }
+            
+            header a {
+                left: 0.5rem;
+                top: 0.5rem;
+            }
+            
+            #BackBtn {
+                padding: 0.25rem 0.5rem;
+                font-size: 0.75rem;
             }
         }
     </style>
@@ -650,32 +681,42 @@
     </div>
 </footer>
 
-    <script>
-        // Navigation Toggle Function
-        function toggleNav() {
-            const navMenu = document.getElementById('navMenu');
-            const overlay = document.getElementById('overlay');
-            
-            navMenu.classList.toggle('open');
-            overlay.classList.toggle('active');
+<script>
+    // Navigation Toggle Function
+    function toggleNav() {
+        const navMenu = document.getElementById('navMenu');
+        const overlay = document.getElementById('overlay');
+        
+        navMenu.classList.toggle('open');
+        overlay.classList.toggle('active');
+        
+        // Prevent body scrolling when nav is open
+        if (navMenu.classList.contains('open')) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
         }
+    }
 
-        // Check if device is mobile
-        function isMobileDevice() {
-            return window.innerWidth < 768;
-        }
+    // Check if device is mobile
+    function isMobileDevice() {
+        return window.innerWidth < 768;
+    }
 
-        // Initialize Monaco Editor
-        require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs' }});
-        require(['vs/editor/editor.main'], function() {
-            // Initial editor height based on device
-            const editorHeight = isMobileDevice() ? 300 : 400;
-            
-            const editor = monaco.editor.create(document.getElementById('editor'), {
-                value: 
+    // Initialize Monaco Editor with optimizations for mobile
+    require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs' }});
+    require(['vs/editor/editor.main'], function() {
+        // Initial editor height based on device
+        const editorHeight = isMobileDevice() ? 250 : 400;
+        
+        // Create editor with mobile-optimized settings
+        const editor = monaco.editor.create(document.getElementById('editor'), {
+            value: 
 `<!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Anchor Tag Example</title>
 </head>
 <body>
@@ -686,38 +727,56 @@
     <p><a href="tel:+1234567890">Call Us</a></p>
 </body>
 </html>`,
-                language: 'html',
-                theme: 'vs-dark',
-                automaticLayout: true,
-                lineNumbers: 'on',
-                minimap: {
-                    enabled: !isMobileDevice()
-                },
-                fontSize: isMobileDevice() ? 13 : 14,
-                scrollBeyondLastLine: false
+            language: 'html',
+            theme: 'vs-dark',
+            automaticLayout: true,
+            lineNumbers: 'on',
+            minimap: {
+                enabled: !isMobileDevice() // Disable minimap on mobile
+            },
+            fontSize: isMobileDevice() ? 12 : 14, // Smaller font on mobile
+            scrollBeyondLastLine: false,
+            wordWrap: 'on', // Enable word wrap for better mobile experience
+            folding: !isMobileDevice(), // Disable code folding on mobile
+            scrollbar: {
+                vertical: 'visible',
+                horizontal: 'visible',
+                verticalScrollbarSize: isMobileDevice() ? 8 : 14, // Thinner scrollbars on mobile
+                horizontalScrollbarSize: isMobileDevice() ? 8 : 14
+            }
+        });
+
+        // Adjust editor and preview sizes on window resize
+        window.addEventListener('resize', function() {
+            const isMobile = isMobileDevice();
+            editor.updateOptions({
+                minimap: { enabled: !isMobile },
+                fontSize: isMobile ? 12 : 14,
+                folding: !isMobile,
+                scrollbar: {
+                    verticalScrollbarSize: isMobile ? 8 : 14,
+                    horizontalScrollbarSize: isMobile ? 8 : 14
+                }
             });
+            
+            // Update editor height based on screen size
+            document.getElementById('editor').style.height = isMobile ? '250px' : '400px';
+            document.getElementById('preview').style.height = isMobile ? '250px' : '400px';
+            
+            // Force layout update
+            editor.layout();
+        });
 
-            // Adjust editor and preview sizes on window resize
-            window.addEventListener('resize', function() {
-                const isMobile = isMobileDevice();
-                editor.updateOptions({
-                    minimap: { enabled: !isMobile },
-                    fontSize: isMobile ? 13 : 14
-                });
-            });
+        // Run button - ONLY update the preview when clicked
+        document.getElementById('runBtn').addEventListener('click', () => {
+            const code = editor.getValue();
+            updatePreview(code);
+        });
 
-            // REMOVED: Auto-update preview on code change
-            // This ensures the preview only updates when Run button is clicked
-
-            // Run button - only way to update the preview
-            document.getElementById('runBtn').addEventListener('click', () => {
-                const code = editor.getValue();
-                updatePreview(code);
-            });
-
-            // Copy button
-            document.getElementById('copyBtn').addEventListener('click', async () => {
-                const code = editor.getValue();
+        // Copy button with better mobile feedback
+        document.getElementById('copyBtn').addEventListener('click', async () => {
+            const code = editor.getValue();
+            try {
                 await navigator.clipboard.writeText(code);
                 
                 // Show feedback to user
@@ -730,27 +789,86 @@
                     copyBtn.innerHTML = originalText;
                     copyBtn.classList.remove('bg-green-600');
                 }, 2000);
-            });
+            } catch (err) {
+                // Fallback for mobile browsers that don't support clipboard API
+                const textarea = document.createElement('textarea');
+                textarea.value = code;
+                textarea.style.position = 'fixed';
+                document.body.appendChild(textarea);
+                textarea.focus();
+                textarea.select();
+                
+                try {
+                    document.execCommand('copy');
+                    const copyBtn = document.getElementById('copyBtn');
+                    const originalText = copyBtn.innerHTML;
+                    copyBtn.innerHTML = '<span class="hidden sm:inline">Copied!</span>';
+                    copyBtn.classList.add('bg-green-600');
+                    
+                    setTimeout(() => {
+                        copyBtn.innerHTML = originalText;
+                        copyBtn.classList.remove('bg-green-600');
+                    }, 2000);
+                } catch (err) {
+                    console.error('Failed to copy code');
+                }
+                
+                document.body.removeChild(textarea);
+            }
+        });
 
-            // Back button functionality
-            document.getElementById('BackBtn').addEventListener('click', () => {
-                window.history.back();
-            });
+        // Back button functionality
+        document.getElementById('BackBtn').addEventListener('click', () => {
+            window.history.back();
+        });
 
-            // Function to update preview
-            function updatePreview(code) {
+        // Function to update preview with better error handling
+        function updatePreview(code) {
+            try {
+                const previewFrame = document.getElementById('preview');
+                const preview = previewFrame.contentWindow.document;
+                
+                // Clear existing content
+                preview.open();
+                
+                // Write the new content
+                preview.write(code);
+                
+                // Close the document
+                preview.close();
+            } catch (error) {
+                console.error('Preview error:', error);
+                
+                // Show error in preview
                 const preview = document.getElementById('preview').contentWindow.document;
                 preview.open();
-                preview.write(code);
+                preview.write(`<div style="color:red; padding: 20px;">
+                    <h3>Error rendering preview:</h3>
+                    <p>\${error.message}</p>
+                </div>`);
                 preview.close();
             }
+        }
 
-            // Clear the preview initially - don't show anything until Run is clicked
-            const preview = document.getElementById('preview').contentWindow.document;
-            preview.open();
-            preview.write('');
-            preview.close();
-        });
-    </script>
+        // Clear the preview initially - show a message telling user to click Run
+        const preview = document.getElementById('preview').contentWindow.document;
+        preview.open();
+        preview.write(`
+            <div style="display: flex; height: 100%; align-items: center; justify-content: center; color: #666; font-family: system-ui, sans-serif; text-align: center; padding: 20px;">
+                <div>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin: 0 auto 10px;">
+                        <path d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
+                        <path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <p>Click the Run button to see the output</p>
+                </div>
+            </div>
+        `);
+        preview.close();
+        
+        // Do NOT auto-run the code when the page loads
+        // Removed the auto-run code
+    });
+</script>
 </body>
 </html>
